@@ -2,6 +2,8 @@ class Board:
     # __init__: self, String -> void
     # Takes a String and attempts to make a Board
     def __init__(self, seedString):
+        self.calls = 0
+
         if len(seedString) != 81:
             raise Exception("seedString needs exactly 81 characters, contains "
                             + str(len(seedString)))
@@ -29,12 +31,43 @@ class Board:
     # Attempts to solve the board, returns False if unsolveable
     # Uses recursion to attempt other possible solutions
     def solve(self):
-        pass
+        self.calls += 1
+        if self.isSolved():
+            return True
+        bestCell = self.findBestCell()
+        ignore = []
+        while (bestCell != None):
+            possibilities = self.getPossibilites(bestCell[0], bestCell[1])
+            if possibilities == []:
+                return False
+            for value in possibilities:
+                self.updateCell(bestCell[0], bestCell[1], value, True)
+                if self.solve():
+                    return True
+                else:
+                    self.updateCell(bestCell[0], bestCell[1], 0, False)
+            ignore.append(bestCell)
+            bestCell = self.findBestCell(ignore)
+        return False
 
     # isSolved: self -> Boolean
     # Returns True if the Board is solved
     def isSolved(self):
-        pass
+        for i in range(9):
+            # Populate the column at the index
+            column = []
+            for c in range(9):
+                column.append(self.matrix[c][i])
+            for j in range(9):
+                # Check for duplicate/missing numbers in row
+                if self.matrix[i].count(j + 1) != 1:
+                    return False
+                # Check for duplicate/missing numbers in column
+                if column.count(j + 1) != 1:
+                    return False
+                # TODO: Check for duplicate/missing numbers in square
+        return True
+
 
     # findBestCell: self, [(int, int)] -> (int, int)
     # Returns the indices of the cell with the MOST conflicts
@@ -46,8 +79,11 @@ class Board:
             for column in range(0,9):
                 if self.matrix[row][column] == 0:
                     curConflicts = self.countConflicts(row, column)
+                    if curConflicts == 9:
+                        return None
                     if curConflicts > maxConflicts:
                         if (row, column) not in ignore:
+                            maxConflicts = curConflicts
                             bestCell = (row, column)
         return bestCell
 
@@ -76,6 +112,15 @@ class Board:
             if self.checkConflicts(row, column, value):
                 count += 1
         return count
+
+    # getPossibilites: self, int, int -> [int]
+    # Returns the list of possible values for the cell
+    def getPossibilites(self, row, column):
+        possibilities = []
+        for value in range(1, 10):
+            if not self.checkConflicts(row, column, value):
+                possibilities.append(value)
+        return possibilities
 
     # checkConflicts: self, int, int, int -> boolean
     # Returns whether the cell currently prevents the value

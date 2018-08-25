@@ -1,7 +1,8 @@
 from __Board__ import Board
 
 # Attempts to open the File given by the user
-filename = input("Enter file name:")
+# filename = input("Enter file name:")
+filename = ""
 try:
     if filename == "":
         filename = "boards.txt"
@@ -21,6 +22,7 @@ for line in splitText:
 for board in boards:
     board.draw()
     board.solve()
-    print("===========")
+    print("///////////")
     board.draw()
+    print("Boards solved in %s calls" % board.calls)
     print("\n")
