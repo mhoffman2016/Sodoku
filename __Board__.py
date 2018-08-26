@@ -1,9 +1,18 @@
 class Board:
+    """ Represents a Sodoku game Board
+    Attributes:
+        calls - int
+            Keeps track of how often the 'solve' method is called
+        matrix - [[int]]
+            Stores all of the in-game digits
+        conflicts - [[[boolean]]]
+            Updated after placements, consulted in order to prevent illegal moves
+    """
+
     # __init__: self, String -> void
     # Takes a String and attempts to make a Board
     def __init__(self, seedString):
         self.calls = 0
-
         if len(seedString) != 81:
             raise Exception("seedString needs exactly 81 characters, contains "
                             + str(len(seedString)))
@@ -25,68 +34,34 @@ class Board:
                 self.matrix[row].append(0)
                 value = int(char)
                 if (value != 0):
-                    self.updateCell(row, column, value, True)
-
-    # solve: self -> Boolean
-    # Attempts to solve the board, returns False if unsolveable
-    # Uses recursion to attempt other possible solutions
-    def solve(self):
-        self.calls += 1
-        if self.isSolved():
-            return True
-        bestCell = self.findBestCell()
-        ignore = []
-        while (bestCell != None):
-            possibilities = self.getPossibilites(bestCell[0], bestCell[1])
-            if possibilities == []:
-                return False
-            for value in possibilities:
-                self.updateCell(bestCell[0], bestCell[1], value, True)
-                if self.solve():
-                    return True
-                else:
-                    self.updateCell(bestCell[0], bestCell[1], 0, False)
-            ignore.append(bestCell)
-            bestCell = self.findBestCell(ignore)
-        return False
+                    if not self.checkConflicts(row, column, value):
+                        self.updateCell(row, column, value, True)
+                    else:
+                        raise Exception("Illegal %s to be placed at (%s,%s)"
+                                        % (value, row, column))
 
     # isSolved: self -> Boolean
     # Returns True if the Board is solved
     def isSolved(self):
         for i in range(9):
-            # Populate the column at the index
-            column = []
-            for c in range(9):
-                column.append(self.matrix[c][i])
             for j in range(9):
-                # Check for duplicate/missing numbers in row
-                if self.matrix[i].count(j + 1) != 1:
-                    return False
-                # Check for duplicate/missing numbers in column
-                if column.count(j + 1) != 1:
-                    return False
-                # TODO: Check for duplicate/missing numbers in square
+                for k in range(1,10):
+                    if self.checkConflicts(i,j,k) == False:
+                        return False
         return True
 
-
-    # findBestCell: self, [(int, int)] -> (int, int)
-    # Returns the indices of the cell with the MOST conflicts
-    # Ignores cells in the given list
-    def findBestCell(self, ignore=[]):
-        maxConflicts = 0
-        bestCell = None
-        for row in range(0,9):
-            for column in range(0,9):
-                if self.matrix[row][column] == 0:
-                    curConflicts = self.countConflicts(row, column)
-                    if curConflicts == 9:
-                        return None
-                    if curConflicts > maxConflicts:
-                        if (row, column) not in ignore:
-                            maxConflicts = curConflicts
-                            bestCell = (row, column)
-        return bestCell
-
+    # checkConflicts: self, int, int, int -> boolean
+    # Returns whether the placement in question is illegal
+    def checkConflicts(self, row, column, value):
+        if (value < 1) or (value > 9):
+            raise Exception("Out of Bounds! 'Value' is expected to be the same as the in-board digit")
+        if self.conflicts[0][row][value - 1]:
+            return True
+        if self.conflicts[1][column][value - 1]:
+            return True
+        if self.conflicts[2][self.findSquare(row, column)][value - 1]:
+            return True
+        return False
 
     # updateCell: self, int, int, int, boolean -> void
     # Changes the matrix and conflict table to reflect the new value
@@ -104,14 +79,11 @@ class Board:
             self.conflicts[1][column][value - 1] = False
             self.conflicts[2][self.findSquare(row, column)][value - 1] = False
 
-    # countConflicts: self, int, int -> int
-    # Returns the number of conflicts given the cell
-    def countConflicts(self, row, column):
-        count = 0
-        for value in range(1, 10):
-            if self.checkConflicts(row, column, value):
-                count += 1
-        return count
+    # findSquare: self, int, int -> int
+    # Returns the square that the cell is located in
+    # 0 is the top-left sqaure, 1 is top-center...
+    def findSquare(self, row, column):
+        return (row // 3) * 3 + (column // 3)
 
     # getPossibilites: self, int, int -> [int]
     # Returns the list of possible values for the cell
@@ -122,21 +94,39 @@ class Board:
                 possibilities.append(value)
         return possibilities
 
-    # checkConflicts: self, int, int, int -> boolean
-    # Returns whether the cell currently prevents the value
-    def checkConflicts(self, row, column, value):
-        if self.conflicts[0][row][value - 1]:
-            return True
-        elif self.conflicts[1][column][value - 1]:
-            return True
-        elif self.conflicts[2][self.findSquare(row, column)][value - 1]:
-            return True
-        return False
+    # findBestCell: self, [(int, int)] -> (int, int)
+    # Returns the indices of the cell with the MOST conflicts
+    def findBestCell(self):
+        min = 9
+        bestCell = None
+        for row in range(9):
+            for column in range(9):
+                # if the cell is empty
+                if self.matrix[row][column] == 0:
+                    cur = len(self.getPossibilites(row, column))
+                    if min >= cur:
+                        min = cur
+                        bestCell = (row, column)
+        return bestCell
 
-    # findSquare: self, int, int -> int
-    # Returns the square that the cell is located in
-    def findSquare(self, row, column):
-        return (row // 3) * 3 + (column // 3)
+    # solve: self -> Boolean
+    # Attempts to solve the board, returns False if unsolveable
+    # Uses recursion to attempt other possible solutions
+    def solve(self):
+        self.calls += 1
+        if self.isSolved():
+            return True
+        bestCell = self.findBestCell()
+        if bestCell == None:
+            return False
+        possibilities = self.getPossibilites(bestCell[0], bestCell[1])
+        for value in possibilities:
+            self.updateCell(bestCell[0], bestCell[1], value, True)
+            if self.solve():
+                return True
+            else:
+                self.updateCell(bestCell[0], bestCell[1], value, False)
+        return False
 
     # draw: self -> void
     # Draws the current Board
