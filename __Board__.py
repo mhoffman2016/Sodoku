@@ -40,6 +40,15 @@ class Board:
                         raise Exception("Illegal %s to be placed at (%s,%s)"
                                         % (value, row, column))
 
+    # matrixAsString: self -> string
+    # Creates a string of the game Board in the same format as the input for init
+    def matrixAsString(self):
+        string = ""
+        for i in range(9):
+            for j in range(9):
+                string = string + str(self.matrix[i][j])
+        return string
+
     # isSolved: self -> Boolean
     # Returns True if the Board is solved
     def isSolved(self):
