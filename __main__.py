@@ -40,9 +40,15 @@ def solveBoards(boards):
 # boardsToFile: [Board], filename -> file
 # Takes a list of Boards and creates a file with the given name
 def boardsToFile(boards, filename):
-    pass
+    file = open(filename, "w")
+    for board in boards:
+        file.write(board.matrixAsString())
+        file.write("\n")
 
 # Attempts to open the File given by the user
-filename = input("Enter file name:")
-boards = fileToBoards(filename)
+fileSource = input("Enter source file name:")
+fileDest = input("Enter destination file name:")
+boards = fileToBoards(fileSource)
 solveBoards(boards)
+if fileDest != "":
+    boardsToFile(boards, fileDest)
