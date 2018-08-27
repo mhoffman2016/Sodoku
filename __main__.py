@@ -17,8 +17,12 @@ def fileToBoards(filename):
     # Attempts to make a Board with each line
     splitText = text.split('\n')
     boards = []
-    for line in splitText:
-        boards.append(Board(line))
+    for count, line in enumerate(splitText):
+        try:
+            board = Board(line)
+            boards.append(Board(line))
+        except:
+            print("Line %s has improper format, exception during init" % count)
     return boards
 
 # solveBoards: [Board] -> [Board]
