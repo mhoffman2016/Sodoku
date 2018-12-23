@@ -1,3 +1,5 @@
+from graphics import *
+
 class Board:
     """ Represents a Sodoku game Board
     Attributes:
@@ -7,9 +9,11 @@ class Board:
             Stores all of the in-game digits
         conflicts - [[[boolean]]]
             Updated after placements, consulted in order to prevent illegal moves
+        window - SodokuWindow
+            Graphic showing the Board being solved in real-time
     """
 
-    # __init__: self, String -> void
+    # __init__: self, String -> None
     # Takes a String and attempts to make a Board
     def __init__(self, seedString):
         self.calls = 0
@@ -72,17 +76,21 @@ class Board:
             return True
         return False
 
-    # updateCell: self, int, int, int, boolean -> void
+    # updateCell: self, int, int, int, boolean -> None
     # Changes the matrix and conflict table to reflect the new value
     def updateCell(self, row, column, value, addingNumber):
         # Adding a number
         if addingNumber:
+            if hasattr(self, "window"):
+                self.window.updateTile(row, column, value)
             self.matrix[row][column] = value
             self.conflicts[0][row][value - 1] = True
             self.conflicts[1][column][value - 1] = True
             self.conflicts[2][self.findSquare(row, column)][value - 1] = True
         # Removing a number
         else:
+            if hasattr(self, "window"):
+                self.window.updateTile(row, column, 0)
             self.matrix[row][column] = 0
             self.conflicts[0][row][value - 1] = False
             self.conflicts[1][column][value - 1] = False
@@ -137,8 +145,8 @@ class Board:
                 self.updateCell(bestCell[0], bestCell[1], value, False)
         return False
 
-    # draw: self -> void
-    # Draws the current Board
+    # draw: self -> None
+    # Draws the current Board in the console
     def draw(self):
         for i in range(9):
             for j in range(9):
