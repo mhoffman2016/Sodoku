@@ -1,5 +1,3 @@
-from graphics import *
-
 class Board:
     """ Represents a Sodoku game Board
     Attributes:
@@ -59,7 +57,7 @@ class Board:
         for i in range(9):
             for j in range(9):
                 for k in range(1,10):
-                    if self.checkConflicts(i,j,k) == False:
+                    if self.matrix[i][j] == 0 or not self.checkConflicts(i,j,k):
                         return False
         return True
 
@@ -72,7 +70,7 @@ class Board:
             return True
         if self.conflicts[1][column][value - 1]:
             return True
-        if self.conflicts[2][self.findSquare(row, column)][value - 1]:
+        if self.conflicts[2][self.findBlock(row, column)][value - 1]:
             return True
         return False
 
@@ -86,7 +84,7 @@ class Board:
             self.matrix[row][column] = value
             self.conflicts[0][row][value - 1] = True
             self.conflicts[1][column][value - 1] = True
-            self.conflicts[2][self.findSquare(row, column)][value - 1] = True
+            self.conflicts[2][self.findBlock(row, column)][value - 1] = True
         # Removing a number
         else:
             if hasattr(self, "window"):
@@ -94,12 +92,12 @@ class Board:
             self.matrix[row][column] = 0
             self.conflicts[0][row][value - 1] = False
             self.conflicts[1][column][value - 1] = False
-            self.conflicts[2][self.findSquare(row, column)][value - 1] = False
+            self.conflicts[2][self.findBlock(row, column)][value - 1] = False
 
-    # findSquare: self, int, int -> int
-    # Returns the square that the cell is located in
-    # 0 is the top-left sqaure, 1 is top-center...
-    def findSquare(self, row, column):
+    # findBlock: self, int, int -> int
+    # Returns the Block that the cell is located in
+    # 0 is the top-left Block, 1 is top-center...
+    def findBlock(self, row, column):
         return (row // 3) * 3 + (column // 3)
 
     # getPossibilites: self, int, int -> [int]
@@ -111,7 +109,7 @@ class Board:
                 possibilities.append(value)
         return possibilities
 
-    # findBestCell: self, [(int, int)] -> (int, int)
+    # findBestCell: self -> (int, int)
     # Returns the indices of the cell with the MOST conflicts
     def findBestCell(self):
         min = 9
@@ -121,10 +119,37 @@ class Board:
                 # if the cell is empty
                 if self.matrix[row][column] == 0:
                     cur = len(self.getPossibilites(row, column))
-                    if min >= cur:
+                    if cur == 0:
+                        return None
+                    if min > cur:
                         min = cur
                         bestCell = (row, column)
         return bestCell
+
+    # findUniqueCandidates: self -> [(int, int, int)]
+    # Returns the index AND value of cells with only one possibility,
+    #   considering the conflicts around them
+    def findUniqueCandidates(self):
+        uniqueCandidates = []
+        # matrix of coordinates, first by block, then by number
+        occurences = []
+        for block in range(9):
+            occurences.append([])
+            for number in range(9):
+                occurences[block].append([])
+        for row in range(9):
+            for column in range(9):
+                # if the cell is empty
+                if self.matrix[row][column] == 0:
+                    possibilities = self.getPossibilites(row, column)
+                    block = self.findBlock(row, column)
+                    for number in possibilities:
+                        occurences[block][number - 1].append((row, column))
+        for block in occurences:
+            for val, number in enumerate(block, 1):
+                if len(number) == 1:
+                    uniqueCandidates.append((number[0], val))
+        return uniqueCandidates
 
     # solve: self -> Boolean
     # Attempts to solve the board, returns False if unsolveable
@@ -133,6 +158,18 @@ class Board:
         self.calls += 1
         if self.isSolved():
             return True
+        # Begins with uniqueCandidate strategy
+        uniqueCandidates = self.findUniqueCandidates()
+        if len(uniqueCandidates) > 0:
+            for uniqueCandidate in uniqueCandidates:
+                self.updateCell(uniqueCandidate[0][0], uniqueCandidate[0][1], uniqueCandidate[1], True)
+            if self.solve():
+                return True
+            else:
+                for uniqueCandidate in uniqueCandidates:
+                    self.updateCell(uniqueCandidate[0][0], uniqueCandidate[0][1], uniqueCandidate[1], False)
+                return False
+        # Begins finding next-best cells to attempt recursion
         bestCell = self.findBestCell()
         if bestCell == None:
             return False
