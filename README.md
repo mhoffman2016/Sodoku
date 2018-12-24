@@ -18,5 +18,8 @@ have only one number possible **when considering the illegal moves around it**. 
 at the neighboring cells, it becomes apparent that only one cell in the block can host the
 number in question, despite that individual cell being capable of many legal moves.
 Credit to the link below for inspiration for this strategy, and a good example.
+
 https://www.kristanix.com/sudokuepic/sudoku-solving-techniques.php
+
 The algorithm finds every "unique candidate" available at any time, and places them all at once.
+If there are no "unique candidates", then the "best cell" strategy will be used.
