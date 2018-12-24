@@ -7,44 +7,43 @@ class SodokuWindow(GraphWin):
             The Board to be drawn and used to update the graphic
         tiles - [[Text]]
             Matrix of all Text to appear on the featured Board
+        message - Text
+            String appearing below the board
     """
     def __init__(self, title="Sodoku",
                  width=240, height=240, autoflush=True):
-        super().__init__(title, width, height, autoflush)
+        super().__init__(title, width, height*1.1, autoflush)
         self.featured = None
         origin = (5,5)
-        boardWidth = self.width - origin[0]*2
-        baseWidth = boardWidth / 9
-        boardHeight = self.height - origin[1]*2
-        baseHeight = boardHeight / 9
+        boardWidth = width - origin[0]*2
+        self.baseWidth = boardWidth / 9
+        boardHeight = height - origin[1]*2
+        self.baseHeight = boardHeight / 9
         # Draw the grid's horizontal lines
         for row in range(10):
-            Line(Point(origin[0], row*baseHeight + origin[0]),
-                 Point(boardWidth + origin[0], row*baseHeight + origin[0])).draw(self)
-            # Makes lines dividing squares thicker
+            line = Line(Point(origin[0], row*self.baseHeight + origin[0]),
+                        Point(boardWidth + origin[0], row*self.baseHeight + origin[0]))
+            # Makes lines dividing blocks thicker
             if row%3 == 0:
-                Line(Point(origin[0], row*baseHeight + origin[0] - 1),
-                     Point(boardWidth + origin[0], row*baseHeight + origin[0] - 1)).draw(self)
-                Line(Point(origin[0], row*baseHeight + origin[0] + 1),
-                     Point(boardWidth + origin[0], row*baseHeight + origin[0] + 1)).draw(self)
+                line.setWidth(3)
+            line.draw(self)
         # Draw the grid's vertical lines
         for column in range(10):
-            Line(Point(column*baseWidth + origin[0], origin[1]),
-                 Point(column*baseWidth + origin[0], boardHeight + origin[1])).draw(self)
-            # Makes lines dividing squares thicker
+            line = Line(Point(column*self.baseWidth + origin[0], origin[1]),
+                        Point(column*self.baseWidth + origin[0], boardHeight + origin[1]))
+            # Makes lines dividing blocks thicker
             if column%3 == 0:
-                Line(Point(column*baseWidth + origin[0] - 1, origin[1]),
-                     Point(column*baseWidth + origin[0] - 1, boardHeight + origin[1])).draw(self)
-                Line(Point(column*baseWidth + origin[0] + 1, origin[1]),
-                     Point(column*baseWidth + origin[0] + 1, boardHeight + origin[1])).draw(self)
-
+                line.setWidth(3)
+            line.draw(self)
         self.tiles = []
         for row in range(9):
             self.tiles.append([])
             for column in range(9):
-                self.tiles[row].append(Text(Point(origin[0] + baseWidth/2 + baseHeight*column,
-                                                  origin[1] + baseHeight/2 + baseHeight*row), ""))
+                self.tiles[row].append(Text(Point(origin[0] + self.baseWidth/2 + self.baseHeight*column,
+                                                  origin[1] + self.baseHeight/2 + self.baseHeight*row), ""))
                 self.tiles[row][column].draw(self)
+        self.message = Text(Point(width/2, height*1.04), "Click anywhere to start!")
+        self.message.draw(self)
 
     # clear: self -> None
     # Clears all text from the Window using the tiles matrix
@@ -71,11 +70,26 @@ class SodokuWindow(GraphWin):
                     continue
                 self.tiles[row][column].setText(text)
                 self.tiles[row][column].setTextColor("gray")
+        self.updateMessage("New board!")
 
-    # updateTile: self, row, column, value -> None
+    # updateTile: self, int, int, int-> None
     # Called during solving of the Board to change specific tiles
     def updateTile(self, row, column, value):
         if value == 0:
             self.tiles[row][column].setText("")
         else:
             self.tiles[row][column].setText(value)
+
+    # updateMessage: self, message -> None
+    # Changes the message that appears at the bottom of the screen
+    def updateMessage(self, message):
+        self.message.setText(message)
+
+    # addHighlight: self, row, column -> None
+    # Places circles around the recently changed tiles
+    # Removes pre-existing highlights
+    def addHighlight(self, row, column):
+        circle = Circle(Point(self.tiles[row][column].anchor.x,
+                              self.tiles[row][column].anchor.y),
+                              self.baseHeight/2)
+        circle.draw(self)

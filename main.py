@@ -34,6 +34,7 @@ def fileToBoards(filename):
 def solveBoards(boards):
     runningTotal = 0
     s = SodokuWindow()
+    s.getMouse()
     for count, board in enumerate(boards, 1):
         board.draw()
         s.clear()
@@ -41,6 +42,7 @@ def solveBoards(boards):
         s.getMouse()
         if not board.solve():
             raise Exception("Unsolveable Board!")
+        s.updateMessage("Solved!")
         print("///////////")
         board.draw()
         print("Solved Board %s in %s calls" % (count, board.calls))
