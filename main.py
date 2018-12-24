@@ -62,7 +62,6 @@ def main():
     fileSource = input("Enter source file name:")
     fileDest = input("Enter destination file name:")
     boards = fileToBoards(fileSource)
-    random.shuffle(boards)
     solveBoards(boards)
     if fileDest != "":
         boardsToFile(boards, fileDest)
