@@ -52,6 +52,7 @@ class SodokuWindow(GraphWin):
         for row in self.tiles:
             for tile in row:
                 tile.setText("")
+                tile.setTextColor("black")
 
     # updateBoard: self -> None
     # Uses the featured Board to change the graphic, or uses the new one passed in
@@ -69,10 +70,12 @@ class SodokuWindow(GraphWin):
                 if text == 0:
                     continue
                 self.tiles[row][column].setText(text)
+                self.tiles[row][column].setTextColor("gray")
 
     # updateTile: self, row, column, value -> None
     # Called during solving of the Board to change specific tiles
     def updateTile(self, row, column, value):
         if value == 0:
-            return
-        self.tiles[row][column].setText(value)
+            self.tiles[row][column].setText("")
+        else:
+            self.tiles[row][column].setText(value)
