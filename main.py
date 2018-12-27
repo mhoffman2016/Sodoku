@@ -40,6 +40,7 @@ def solveBoards(boards):
         s.clear()
         s.updateBoard(board)
         s.getMouse()
+        s.updateMessage("Solving...")
         if not board.solve():
             raise Exception("Unsolveable Board!")
         s.updateMessage("Solved!")

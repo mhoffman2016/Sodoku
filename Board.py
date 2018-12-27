@@ -9,6 +9,8 @@ class Board:
             Updated after placements, consulted in order to prevent illegal moves
         window - SodokuWindow
             Graphic showing the Board being solved in real-time
+        count - [int]
+            Tracks the amount of each number on the Board at any time
     """
 
     # __init__: self, String -> None
@@ -26,6 +28,8 @@ class Board:
                 self.conflicts[i].append([])
                 for k in range(9):
                     self.conflicts[i][j].append(False)
+        # Create a list of 9 int to count occurences
+        self.count = [0,0,0,0,0,0,0,0,0]
         # Store all values in the Matrix from the seedString,
         # and update all conflicts from those values
         self.matrix = []
@@ -59,6 +63,9 @@ class Board:
                 for k in range(1,10):
                     if self.matrix[i][j] == 0 or not self.checkConflicts(i,j,k):
                         return False
+        for num in self.count:
+            if num != 9:
+                return False
         return True
 
     # checkConflicts: self, int, int, int -> boolean
@@ -85,6 +92,7 @@ class Board:
             self.conflicts[0][row][value - 1] = True
             self.conflicts[1][column][value - 1] = True
             self.conflicts[2][self.findBlock(row, column)][value - 1] = True
+            self.count[value - 1] += 1
         # Removing a number
         else:
             if hasattr(self, "window"):
@@ -93,6 +101,7 @@ class Board:
             self.conflicts[0][row][value - 1] = False
             self.conflicts[1][column][value - 1] = False
             self.conflicts[2][self.findBlock(row, column)][value - 1] = False
+            self.count[value - 1] -= 1
 
     # findBlock: self, int, int -> int
     # Returns the Block that the cell is located in
@@ -126,7 +135,7 @@ class Board:
                         bestCell = (row, column)
         return bestCell
 
-    # findUniqueCandidates: self -> [(int, int, int)]
+    # findUniqueCandidates: self -> [((int, int), int)]
     # Returns the index AND value of cells with only one possibility,
     #   considering the conflicts around them
     def findUniqueCandidates(self):
@@ -158,22 +167,43 @@ class Board:
         self.calls += 1
         if self.isSolved():
             return True
+
         # Begins with uniqueCandidate strategy
         uniqueCandidates = self.findUniqueCandidates()
+        # Ignores chance to exit function if there are no candidates
         if len(uniqueCandidates) > 0:
-            for uniqueCandidate in uniqueCandidates:
-                self.updateCell(uniqueCandidate[0][0], uniqueCandidate[0][1], uniqueCandidate[1], True)
-            if self.solve():
+            if self.solveUniqueCandidates(uniqueCandidates):
                 return True
             else:
-                for uniqueCandidate in uniqueCandidates:
-                    self.updateCell(uniqueCandidate[0][0], uniqueCandidate[0][1], uniqueCandidate[1], False)
                 return False
-        # Begins finding next-best cells to attempt recursion
+
+        # Begins finding best cell to attempt recursion
         bestCell = self.findBestCell()
+        return self.solveBestGuess(bestCell)
+
+    # solveUniqueCandidate: self -> Boolean
+    # Attempts to fill in unique candidates before continuing solving
+    def solveUniqueCandidates(self, uniqueCandidates=[]):
+        for uniqueCandidate in uniqueCandidates:
+            self.updateCell(uniqueCandidate[0][0], uniqueCandidate[0][1], uniqueCandidate[1], True)
+        if self.solve():
+            return True
+        else:
+            for uniqueCandidate in uniqueCandidates:
+                self.updateCell(uniqueCandidate[0][0], uniqueCandidate[0][1], uniqueCandidate[1], False)
+            return False
+
+    # solveBestGuess: self -> Boolean
+    # Attempts to find an ideal candidate for backtracking
+    def solveBestGuess(self, bestCell=None):
         if bestCell == None:
             return False
         possibilities = self.getPossibilites(bestCell[0], bestCell[1])
+
+        # increase priority for possibilities that are not already prevalent on the board
+        countKey = sorted(range(len(self.count)), key=lambda k: self.count[k])
+        possibilities = sorted(possibilities, key=lambda p: countKey.index(p-1))
+
         for value in possibilities:
             self.updateCell(bestCell[0], bestCell[1], value, True)
             if self.solve():
