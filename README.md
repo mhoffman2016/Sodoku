@@ -1,6 +1,6 @@
-SODOKU
+Sudoku
 
-This program displays Sodoku puzzles supplied by a text file being solved.
+This program displays Sudoku puzzles supplied by a text file being solved.
 
 The program combines two strategies in order to solve the puzzles:
 

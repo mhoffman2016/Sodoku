@@ -1,5 +1,5 @@
 from Board import *
-from SodokuWindow import *
+from SudokuWindow import *
 import random
 
 # fileToBoards: filename -> [Board]
@@ -31,15 +31,16 @@ def fileToBoards(filename):
 # solveBoards: [Board] -> [Board]
 # Takes a list of Boards and solves all of them
 # Updates the user on the status of the process throughout
-def solveBoards(boards):
+def solveBoards(boards, pause=False):
     runningTotal = 0
-    s = SodokuWindow()
+    s = SudokuWindow()
     s.getMouse()
     for count, board in enumerate(boards, 1):
         board.draw()
         s.clear()
         s.updateBoard(board)
-        s.getMouse()
+        if pause:
+            s.getMouse()
         s.updateMessage("Solving...")
         if not board.solve():
             raise Exception("Unsolveable Board!")
@@ -49,7 +50,8 @@ def solveBoards(boards):
         print("Solved Board %s in %s calls" % (count, board.calls))
         runningTotal += board.calls
         print("Avg. = %s\n" % (runningTotal // (count)))
-        s.getMouse()
+        if pause:
+            s.getMouse()
     s.close()
 
 # boardsToFile: [Board], filename -> file
@@ -60,6 +62,7 @@ def boardsToFile(boards, filename):
         file.write(board.matrixAsString())
         file.write("\n")
 
+
 def main():
     # Attempts to open the File given by the user
     fileSource = input("Enter source file name:")
@@ -68,5 +71,6 @@ def main():
     solveBoards(boards)
     if fileDest != "":
         boardsToFile(boards, fileDest)
+
 
 main()

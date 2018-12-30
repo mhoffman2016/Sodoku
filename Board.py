@@ -1,5 +1,5 @@
 class Board:
-    """ Represents a Sodoku game Board
+    """ Represents a Sudoku game Board
     Attributes:
         calls - int
             Keeps track of how often the 'solve' method is called
@@ -7,7 +7,7 @@ class Board:
             Stores all of the in-game digits
         conflicts - [[[boolean]]]
             Updated after placements, consulted in order to prevent illegal moves
-        window - SodokuWindow
+        window - SudokuWindow
             Graphic showing the Board being solved in real-time
         count - [int]
             Tracks the amount of each number on the Board at any time
@@ -198,13 +198,14 @@ class Board:
     def solveBestGuess(self, bestCell=None):
         if bestCell == None:
             return False
-        possibilities = self.getPossibilites(bestCell[0], bestCell[1])
+        bestNumbers = self.getPossibilites(bestCell[0], bestCell[1])
 
-        # increase priority for possibilities that are not already prevalent on the board
-        countKey = sorted(range(len(self.count)), key=lambda k: self.count[k])
-        possibilities = sorted(possibilities, key=lambda p: countKey.index(p-1))
+        if len(bestNumbers) > 1:
+            # increase priority for possibilities that are not already prevalent on the board
+            countKey = sorted(range(len(self.count)), key=lambda k: self.count[k])
+            bestNumbers = sorted(bestNumbers, key=lambda p: countKey.index(p-1))
 
-        for value in possibilities:
+        for value in bestNumbers:
             self.updateCell(bestCell[0], bestCell[1], value, True)
             if self.solve():
                 return True

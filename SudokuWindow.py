@@ -1,6 +1,7 @@
 from graphics import *
 
-class SodokuWindow(GraphWin):
+
+class SudokuWindow(GraphWin):
     """ Graphical representation of the featured Board
     Attributes:
         featured - Board
@@ -10,7 +11,7 @@ class SodokuWindow(GraphWin):
         message - Text
             String appearing below the board
     """
-    def __init__(self, title="Sodoku",
+    def __init__(self, title="Sudoku",
                  width=240, height=240, autoflush=True):
         super().__init__(title, width, height*1.1, autoflush)
         self.featured = None
@@ -42,7 +43,7 @@ class SodokuWindow(GraphWin):
                 self.tiles[row].append(Text(Point(origin[0] + self.baseWidth/2 + self.baseHeight*column,
                                                   origin[1] + self.baseHeight/2 + self.baseHeight*row), ""))
                 self.tiles[row][column].draw(self)
-        self.message = Text(Point(width/2, height*1.04), "Click anywhere to start!")
+        self.message = Text(Point(width/2, height + origin[1]*2), "Click anywhere to start!")
         self.message.draw(self)
 
     # clear: self -> None
