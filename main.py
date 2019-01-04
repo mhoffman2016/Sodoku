@@ -28,31 +28,36 @@ def fileToBoards(filename):
             raise
     return boards
 
-# solveBoards: [Board] -> [Board]
+# solveBoards: [Board], Boolean, Boolean -> [Board]
 # Takes a list of Boards and solves all of them
 # Updates the user on the status of the process throughout
-def solveBoards(boards, pause=False):
+def solveBoards(boards, graphics=True, pause=False):
     runningTotal = 0
-    s = SudokuWindow()
-    s.getMouse()
+    if graphics:
+        s = SudokuWindow()
+        s.getMouse()
     for count, board in enumerate(boards, 1):
         board.draw()
-        s.clear()
-        s.updateBoard(board)
-        if pause:
-            s.getMouse()
-        s.updateMessage("Solving...")
+        if graphics:
+            s.clear()
+            s.updateBoard(board)
+            if pause:
+                s.getMouse()
+            s.updateMessage("Solving...")
         if not board.solve():
             raise Exception("Unsolveable Board!")
-        s.updateMessage("Solved!")
+        if graphics:
+            s.updateMessage("Solved!")
         print("///////////")
         board.draw()
         print("Solved Board %s in %s calls" % (count, board.calls))
         runningTotal += board.calls
         print("Avg. = %s\n" % (runningTotal // (count)))
-        if pause:
+        if graphics and pause:
             s.getMouse()
-    s.close()
+    if graphics:
+        s.getMouse()
+        s.close()
 
 # boardsToFile: [Board], filename -> file
 # Takes a list of Boards and creates a file with the given name
@@ -63,12 +68,31 @@ def boardsToFile(boards, filename):
         file.write("\n")
 
 
+# confirm: String -> Boolean
+# Prints ONLY the String, then searches for a usable input
+def confirm(message):
+    entry = input(message)
+    entry = entry.lower()
+    if ("y" in entry) and not ("n" in entry):
+        return True
+    if ("n" in entry) and not ("y" in entry):
+        return False
+    else:
+        print("Invalid input!")
+        return confirm(message)
+
+
 def main():
     # Attempts to open the File given by the user
     fileSource = input("Enter source file name:")
-    fileDest = input("Enter destination file name:")
     boards = fileToBoards(fileSource)
-    solveBoards(boards)
+    fileDest = ""
+    if confirm("Output to file? Y/N:"):
+        fileDest = input("Enter destination file name:")
+    if confirm("Use graphics? Y/N:"):
+        solveBoards(boards, True, confirm("Pause for clicks? Y/N:"))
+    else:
+        solveBoards(boards, False, False)
     if fileDest != "":
         boardsToFile(boards, fileDest)
 
