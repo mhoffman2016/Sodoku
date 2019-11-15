@@ -22,6 +22,7 @@ class Board:
                             + str(len(seedString)))
         # create a 3x9x9 Boolean list for storing number conflicts
         self.conflicts = []
+
         for i in range(3):
             self.conflicts.append([])
             for j in range(9):
@@ -137,7 +138,7 @@ class Board:
 
     # findUniqueCandidates: self -> [((int, int), int)]
     # Returns the index AND value of cells with only one possibility,
-    #   considering the conflicts around them
+    #   considering the conflicts in their block
     def findUniqueCandidates(self):
         uniqueCandidates = []
         # matrix of coordinates, first by block, then by number

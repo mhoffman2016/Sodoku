@@ -75,7 +75,7 @@ def confirm(message):
     entry = entry.lower()
     if ("y" in entry) and not ("n" in entry):
         return True
-    if ("n" in entry) and not ("y" in entry):
+    if (("n" in entry) and not ("y" in entry)) or entry == "":
         return False
     else:
         print("Invalid input!")
@@ -95,6 +95,5 @@ def main():
         solveBoards(boards, False, False)
     if fileDest != "":
         boardsToFile(boards, fileDest)
-
 
 main()
